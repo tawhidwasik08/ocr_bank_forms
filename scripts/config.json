@@ -1,0 +1,271 @@
+{
+	"nbl": {
+		"format_1": {
+			"variant_1": {
+				"roi_top_left": {
+					"ratios": {
+						"xr": 0.015,
+						"yr": 0.2,
+						"wr": 0.5,
+						"hr": 0.38
+					},
+					"des_field_num": 5,
+					"des_fields": {
+						"Full": [0.25, 0.07, null, 0.1],
+						"Birth": [0.08, 0.05, null, 0.1],
+						"ID": [0.1, 0.07, null, 0.1],
+						"Mobile": [0.07, 0.04, null, 0.08]
+					},
+					"des_fields_extra": {
+						"Residence": [0.95, 0.05, null, 0.08]
+					},
+					"ref": ["Full", "Birth"],
+					"swap_fields": {
+						"Residence": "Mobile"
+					},
+					"default_dis_x": 508
+				},
+				"roi_bottom_right": {
+					"ratios": {
+						"xr": 1,
+						"yr": 1,
+						"wr": 0.5,
+						"hr": 0.25
+					},
+					"des_field_num": 2,
+					"des_fields": {
+						"FileID": [0.1, 0.03, 0.7, 0.15]
+
+					},
+					"des_fields_extra": {
+						"Source": [-0.9, -0.1, -0.3, 0.15]
+					},
+					"swap_fields": {
+						"Source": "FileID"
+					},
+					"ref": ["FileID", "Source"],
+					"default_dis_x": 524
+				}
+
+			},
+			"variant_2": {
+				"roi_top_left": {
+					"ratios": {
+						"xr": 0.015,
+						"yr": 0.2,
+						"wr": 0.5,
+						"hr": 0.38
+					},
+					"des_field_num": 5,
+					"des_fields": {
+						"Full": [0.25, 0.07, null, 0.1],
+						"Birth": [0.08, 0.05, null, 0.1],
+						"ID": [0.1, 0.07, null, 0.1],
+						"Mobile": [0.07, 0.05, null, 0.08]
+					},
+					"des_fields_extra": {
+						"Residence": [0.95, 0.05, null, 0.08]
+					},
+					"ref": ["Full", "Birth"],
+					"swap_fields": {
+						"Residence": "Mobile"
+					},
+					"default_dis_x": 508
+				},
+				"roi_bottom_right": {
+					"ratios": {
+						"xr": 1,
+						"yr": 1,
+						"wr": 0.5,
+						"hr": 0.25
+					},
+					"des_field_num": 2,
+					"des_fields": {
+						"FileID": [0.1, 0.03, 0.7, 0.15]
+
+					},
+					"des_fields_extra": {
+						"Source": [-0.9, -0.1, -0.3, 0.15]
+					},
+					"swap_fields": {
+						"Source": "FileID"
+					},
+					"ref": ["FileID", "Source"],
+					"default_dis_x": 524
+				}
+
+			},
+			"variant_3": {
+				"roi_top_left": {
+					"ratios": {
+						"xr": 0.015,
+						"yr": 0.2,
+						"wr": 0.5,
+						"hr": 0.38
+					},
+					"des_field_num": 5,
+					"des_fields": {
+						"Full": [0.25, 0.07, null, 0.1],
+						"Birth": [0.08, 0.05, null, 0.1],
+						"ID": [0.1, 0.07, null, 0.1],
+						"Mobile": [0.1, 0.05, 0.7, 0.08]
+					},
+					"duplicates": ["Mobile"],
+					"ref": ["Full", "Birth"],
+					"default_dis_x": 435
+				},
+				"roi_bottom_right": {
+					"ratios": {
+						"xr": 1,
+						"yr": 1,
+						"wr": 0.5,
+						"hr": 0.25
+					},
+					"des_field_num": 2,
+					"des_fields": {
+						"FileID": [0.1, 0.03, 0.7, 0.15]
+
+					},
+					"des_fields_extra": {
+						"Source": [-0.9, -0.1, -0.3, 0.15]
+					},
+					"swap_fields": {
+						"Source": "FileID"
+					},
+					"ref": ["FileID", "Source"],
+					"default_dis_x": 524
+				}
+
+			},
+			"variant_4": {
+				"roi_top_left": {
+					"ratios": {
+						"xr": 0.015,
+						"yr": 0.2,
+						"wr": 0.5,
+						"hr": 0.38
+					},
+					"des_field_num": 4,
+					"des_fields": {
+						"Full": [0.25, 0.07, null, 0.1],
+						"Birth": [0.08, 0.05, null, 0.1],
+						"Mobile": [0.07, 0.05, null, 0.08]
+					},
+					"des_fields_extra": {
+						"Residence": [0.95, 0.05, null, 0.08]
+					},
+					"ref": ["Full", "Birth"],
+					"swap_fields": {
+						"Residence": "Mobile"
+					},
+					"default_dis_x": 508
+				},
+				"roi_bottom_right": {
+					"ratios": {
+						"xr": 1,
+						"yr": 0.99,
+						"wr": 0.5,
+						"hr": 0.25
+					},
+					"des_field_num": 2,
+					"des_fields": {
+						"FileID": [0.1, 0.03, 0.85, 0.15]
+
+					},
+					"des_fields_extra": {
+						"Source": [-0.9, -0.1, -0.45, 0.15]
+					},
+					"swap_fields": {
+						"Source": "FileID"
+					},
+					"ref": ["FileID", "Source"],
+					"default_dis_x": 524
+				}
+
+			}
+
+		},
+		"format_2": {
+			"variant_1": {
+				"roi_top_left": {
+					"ratios": {
+						"xr": 0.015,
+						"yr": 0.15,
+						"wr": 0.5,
+						"hr": 0.25
+					},
+					"des_field_num": 3,
+					"des_fields": {
+						"Full": [0.15, 0.07, null, 0.1],
+						"Birth": [0.07, 0.05, null, 0.1],
+						"Telephone": [0.1, 0.07, null, 0.1]
+					},
+					"ref": ["Full", "Birth"],
+					"default_dis_x": 508
+				}
+			},
+			"variant_2": {
+				"roi_top_left": {
+					"ratios": {
+						"xr": 0.015,
+						"yr": 0.13,
+						"wr": 0.5,
+						"hr": 0.25
+					},
+					"des_field_num": 3,
+					"des_fields": {
+						"Name": [0.085, 0.09, null, 0.11],
+						"Birth": [0.07, 0.07, null, 0.1],
+						"Tel": [0.13, 0.08, null, 0.1]
+					},
+					"ref": ["Name", "Birth"],
+					"default_dis_x": 390
+				}
+			},
+			"variant_3": {
+				"roi_top_left": {
+					"ratios": {
+						"xr": 0.015,
+						"yr": 0.12,
+						"wr": 0.5,
+						"hr": 0.25
+					},
+					"des_field_num": 3,
+					"des_fields": {
+						"Full": [0.17, 0.07, null, 0.1],
+						"Birth": [0.07, 0.07, null, 0.12],
+						"Telephone": [0.12, 0.07, null, 0.1]
+					},
+					"ref": ["Full", "Birth"],
+					"default_dis_x": 420
+				},
+				"roi_bottom_right": {
+					"ratios": {
+						"xr": 1,
+						"yr": 0.95,
+						"wr": 0.5,
+						"hr": 0.25
+					},
+					"des_field_num": 2,
+					"des_fields": {
+						"FileID": [0.1, 0.03, 0.7, 0.15]
+
+					},
+					"des_fields_extra": {
+						"Source": [-0.91, -0.03, -0.35, 0.08]
+					},
+					"swap_fields": {
+						"Source": "FileID"
+					},
+					"ref": ["FileID", "Source"],
+					"default_dis_x": 540
+				}
+			}
+
+		}
+
+
+	}
+
+
+}

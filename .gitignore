@@ -1,0 +1,5 @@
+__pycache__
+
+# image folders
+samples/
+output_image/

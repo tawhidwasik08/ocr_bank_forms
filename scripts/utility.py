@@ -14,42 +14,28 @@ def show_image(image,resized):
 	cv2.imshow("Image", image)
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
+	return None
 
-# crop out top left portion
-def extract_roi(image,f):
+def extract_roi(image, roi, ratio_val):
 	width = image.shape [1]
 	height = image.shape [0]
 
-	if (f==1):
-		x = int(width*0.015)
-		y = int(height*0.2)
-		w = int(width*0.5)
-		h = int(height*0.38)
-	else:
-		x = int(width*0.015)
-		y = int(height*0.12)
-		w = int(width*0.5)
-		h = int(height*0.25)
-	crop_img = image[y:y+h, x:x+w]
+	x = int(width*ratio_val['xr'])
+	y = int(height*ratio_val['yr'])
+	w = int(width*ratio_val['wr'])
+	h = int(height*ratio_val['hr'])
+
+	crop_img = None
+	if roi == 'roi_top_left':
+		crop_img = image[y:y+h, x:x+w]
+	elif roi == 'roi_bottom_right':
+		crop_img = image[y-h:y, x-w:x]
+	elif roi == 'roi_top_right':
+		crop_img = image[y:y+h, x-w:x]
+	elif roi == 'roi_bottom_left':
+		crop_img = image[y:y-h, x:x+w]
 	return crop_img
 
-# crop out bottom right portion
-def extract_roi_2(image,f):
-	width = image.shape [1]
-	height = image.shape [0]
-
-	if f == 1:
-		x = int(width)
-		y = int(height)
-		w = int(width*0.5)
-		h = int(height*0.25)
-	else:
-		x = int(width)
-		y = int(height)
-		w = int(width*0.5)
-		h = int(height*0.30)
-	crop_img = image[y-h:y, x-w:x]
-	return crop_img
 
 # deskewing image as much as possible //
 # incase of failure keeping as is
@@ -172,31 +158,29 @@ def ocr(image,original,des_fields):
 	return temp_list
 
 
-# def show_image_result(image,bound_boxes):
-# 	for item in bound_boxes:
-# 		for key,val in item.items():
-# 			(x, y, w, h) = val
-# 			font = cv2.FONT_HERSHEY_SIMPLEX
-# 			image = cv2.putText(image,key,(x, y), font, 0.8, (255, 25, 0), 2, cv2.LINE_AA)
-# 			image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
-# 	show_image(image,True)
-
 # bounding boxes keys are original ocr-ed text //
 # clean up the text to be matched with the closest with desired ones
-def clean_bound_box(bound_boxes,des_fields):
+def clean_bound_box(bound_boxes,des_fields,fvr_data):
+	
 	temp_list = []
 	temp_list_2 = []
+	
+	try:
+		duplicates = fvr_data['duplicates']
+	except KeyError:
+		duplicates = []
+
+	# clean partial text in bounding box dictionary to be matched with desired field texts
 	for item in bound_boxes:
 		max_ratio = 0
 		max_matched_text = ''
 		for key,val in item.items():
 			for d in des_fields:
-				if fuzz.ratio(key.lower(),d) > max_ratio:
-					max_ratio = fuzz.ratio(key.lower(),d)
+				if fuzz.ratio(key.lower(),d.lower()) > max_ratio:
+					max_ratio = fuzz.ratio(key.lower(),d.lower())
 					max_matched_text = d
 
-			if max_matched_text not in [k for d in temp_list_2 for k in d.keys()] or max_matched_text=='mobile':
+			if max_matched_text not in [k for d in temp_list_2 for k in d.keys()] or max_matched_text in duplicates:
 				temp_list.append({max_matched_text:val})
 				temp_list_2.append({max_matched_text:max_ratio})
 			else :
@@ -207,105 +191,85 @@ def clean_bound_box(bound_boxes,des_fields):
 					temp_list.append({max_matched_text:val})
 					temp_list_2.append({max_matched_text:max_ratio})
 
+	# if swap is not need for a field, remove unnecessary ones
+	temp_list = list(filter(None, temp_list))					
+	bound_boxes_items = list(k for d in temp_list for k in d.keys())
+	for b in temp_list:
+		key = list(b.keys())[0]
+		try:
+			if fvr_data['swap_fields'][key] in bound_boxes_items:
+				temp_list.remove(b)
+		except KeyError:
+			pass
+
 	return temp_list
 
 
-def draw_result_box(image,key,x,y,w,h):
+def draw_box(image,key,x,y,w,h,color):
 	font = cv2.FONT_HERSHEY_SIMPLEX
-	image = cv2.putText(image,key,(x, y), font, 0.8, (255, 25, 0), 2, cv2.LINE_AA)
-	image = cv2.rectangle(image, (x, y), (x + w, y + h), (255, 50, 0), 2)
+	image = cv2.putText(image,key,(x, y), font, 0.8, color, 2, cv2.LINE_AA)
+	image = cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
 	return image
 
 # find co ordinates of fields based on format,variant and text
 # for top left portion
-def show_image_field_result(image,bound_boxes,des_fields,f,v):
-	bound_boxes = clean_bound_box(bound_boxes,des_fields)
-
-	for item in bound_boxes:
-		for key,val in item.items():
-			if key == 'birth':
-				birth_box = val
-			if key == 'full' or key == 'name':
-				full_box = val
-
+def show_image_field_result(image, bound_boxes, fvr_data):
 	try:
-		x_dif = int (((birth_box[0]+birth_box[0]+birth_box[2])/2)- ((full_box[0]+full_box[0]+full_box[2])/2))
-		y_dif = int (((birth_box[1]+birth_box[1]+birth_box[3])/2)- ((full_box[1]+full_box[1]+full_box[3])/2))
-	except UnboundLocalError:
-		if f == 1:
-			x_dif = 505
-			y_dif = 140
-		if f == 2 :
-			x_dif = 420
-			y_dif = 75
+		des_fields = list(fvr_data['des_fields'].keys()) \
+					+list(fvr_data['des_fields_extra'].keys())
+	except KeyError:
+		des_fields = des_fields = list(fvr_data['des_fields'].keys())
 
-	if f == 1:
-		x_rat_full, y_rat_full, h_rat_full = (0.25, 0.2, 0.3)
-		x_rat_id, y_rat_id, h_rat_id = (0.1, 0.22, 0.3)
-		x_rat_birth, y_rat_birth, h_rat_birth = (0.08, 0.125, 0.3)
-		x_rat_mobile, y_rat_mobile, h_rat_mobile = (0.08,0.18, 0.28)
-	
-	if f == 2:
-		if v == 1 or v ==3:
-			x_rat_full, y_rat_full, h_rat_full = (0.15, 0.35, 0.5)
-			x_rat_birth, y_rat_birth, h_rat_birth = (0.07, 0.25, 0.5)
-			x_rat_tp, y_rat_tp, h_rat_tp = (0.1,0.35, 0.45)
+	ref = fvr_data['ref']
+	def_ref_dis = fvr_data['default_dis_x']
 
-		if v == 2:
-			x_rat_full, y_rat_full, h_rat_full = (0.07, 0.25, 0.3)
-			x_rat_birth, y_rat_birth, h_rat_birth = (0.07, 0.25, 0.3)
-			x_rat_tp, y_rat_tp, h_rat_tp = (0.1,0.25, 0.3)
-	
-	(ih, iw) = image.shape[:2]
-	for item in bound_boxes:
-		for key,val in item.items():
-			(x, y, w, h) = val
-			image = cv2.rectangle(image, (x, y), (x + w, y + h), (0,15, 255), 2)
-			if (key == 'full' or key =='name'):
-				x = int (((x+x+w)/2) + x_dif*x_rat_full)
-				y = int (((y+y+h)/2) - y_dif*y_rat_full)
-				w = int (iw-x)
-				h = int(y_dif*h_rat_full)
-				image = draw_result_box(image,key, x,y,w,h)
+	bound_boxes = clean_bound_box(bound_boxes,des_fields,fvr_data)
 
-			if (key == 'id'):
-				x = int (((x+x+w)/2) + x_dif*x_rat_id)
-				y = int (((y+y+h)/2) - y_dif*y_rat_id)
-				w = int (iw-x)
-				h = int(y_dif*h_rat_id)
-				image = draw_result_box(image,key, x,y,w,h)
+	# calculate mid points for the reference boxes // 
+	# in case of missing kept a deafult avg value
+	try:
+		ref_x1 = [d[ref[0]] for d in bound_boxes if ref[0] in d][0][0]
+		ref_w1 = [d[ref[0]] for d in bound_boxes if ref[0] in d][0][2]
+		ref_x2 = [d[ref[1]] for d in bound_boxes if ref[1] in d][0][0]
+		ref_w2 = [d[ref[1]] for d in bound_boxes if ref[1] in d][0][2]
 
-			if (key == 'birth'):
-				x = int (((x+x+w)/2) + x_dif*x_rat_birth)
-				y = int (((y+y+h)/2) - y_dif*y_rat_birth)
-				w = int (iw-x)
-				h = int(y_dif * h_rat_birth)
-				image = draw_result_box(image,key, x,y,w,h)
+		ref_x1_mid = int(((2*ref_x1)+ref_w1)/2)	
+		ref_x2_mid = int(((2*ref_x2)+ref_w2)/2)
 
-			if (key == 'telephone' or key == 'tel'):
-				x = int (((x+x+w)/2) + x_dif*x_rat_tp)
-				y = int (((y+y+h)/2) - y_dif*y_rat_tp)
-				w = int (iw-x)
-				h = int(y_dif * h_rat_tp)
-				image = draw_result_box(image,key, x,y,w,h)
+		# get difference
+		dif = abs(ref_x2_mid-ref_x1_mid)
+	except :
+		dif = def_ref_dis
 
-			if (key == 'mobile'):
-				x = int (((x+x+w)/2) + x_dif*x_rat_mobile)
-				y = int (((y+y+h)/2) - y_dif*y_rat_mobile)
-				if f == 1 and v ==3:
-					w = int(x_dif * 0.75)
-				else:
-					w = int (iw-x)
-				h = int(y_dif * h_rat_mobile)
-				image = draw_result_box(image,key, x,y,w,h)
+	(imgH, imgW) = image.shape[:2]
 
-			if not any('mobile' in d for d in bound_boxes):
-				if (key == 'residence'):
-					x = int (((x+x+w)/2) + x_dif)
-					y = int (((y+y+h)/2) - y_dif*y_rat_mobile)
-					w = int (iw-x)
-					h = int(y_dif * h_rat_mobile)
-					image = draw_result_box(image,key, x,y,w,h)
+	for b in bound_boxes:
+		for key,val in b.items():
+			
+			# get mid point of the box
+			mid_x = int (((2*val[0])+val[2])/2)
+			mid_y = int (((2*val[1])+val[3])/2)
+
+			# try to get ratio values for each field //
+			# if missing try to get from swappable field
+			try:
+				r_vals = fvr_data['des_fields'][key]
+			except KeyError:
+				r_vals = fvr_data['des_fields_extra'][key]
+				key = fvr_data['swap_fields'][key]
+
+			# calculate offset
+			x = int (mid_x+dif*r_vals[0])
+			y = int (mid_y-dif*r_vals[1])
+			if r_vals[2] == None:
+				w = imgW-x
+			else:
+				w = int (dif*r_vals[2])
+			h = int(dif*r_vals[3])
+
+			image = draw_box (image, key, val[0], val[1], val[2], val[3], (25, 25, 255))
+			image = draw_box(image, key, x, y, w, h, (255, 25, 0))
+
 	return image
 
 # find co ordinates of fields based on format,variant and text
@@ -355,6 +319,7 @@ def overlap(rect1,rect2):
 	p2 = Polygon([[a, b], [a, b+h2], [a+w2, b], [a+w2, b+h2]])
 	return(p1.intersects(p2))
 
+
 # remove duplicate bounding boxes
 def remove_duplicates(bb):
 	remove_index = []
@@ -378,35 +343,22 @@ def patterns_from_bb(bb):
 	return len(bb), bb
 
 
-def ocr_roi(gray,cropped_image,des_fields,p):
+def ocr_roi(gray, cropped_image, des_fields, des_pattern_num):
+	# ocr on base grayscale image and get bounding boxes of the found texts
 	bb = ocr(gray,cropped_image,des_fields)  
-	# no. of patterns from bounding boxes
-	pattern_count,bb = patterns_from_bb(bb)
 
-	# if all not patterns are found, serialize next preprocesseings and run again
-	for i in range(4):
-		if pattern_count >= p:
-			break
-		else:
-			if i == 0:
-				preprocessed_image_1 = preprocess_1(gray)
-				bb1 = ocr(preprocessed_image_1,cropped_image,des_fields)
-				bb = bb+bb1
-				pattern_count,bb = patterns_from_bb(bb)
-			if i == 1:
-				preprocessed_image_2 = preprocess_2(gray)
-				bb2 = ocr(preprocessed_image_2,cropped_image,des_fields)
-				bb = bb+bb2
-				pattern_count,bb = patterns_from_bb(bb)
-			if i == 2:
-				preprocessed_image_3 = preprocess_3(gray)
-				bb3 = ocr(preprocessed_image_3,cropped_image,des_fields)
-				bb = bb+bb3
-				pattern_count,bb = patterns_from_bb(bb)
-			if i == 3:
-				preprocessed_image_4 = preprocess_4(gray)
-				bb4 = ocr(preprocessed_image_4,cropped_image,des_fields)
-				bb = bb+bb4
-				pattern_count,bb = patterns_from_bb(bb)
+	# no. of patterns from bounding boxes after duplicate/overlapped boxes removed
+	pattern_count, bb = patterns_from_bb(bb)
+
+	# list of preprocessings to run until all not patterns are found
+	preprocess_list = [preprocess_1(gray),preprocess_2(gray),preprocess_3(gray),preprocess_4(gray)]
+
+	i = 0
+	while (i < len(preprocess_list) and pattern_count < des_pattern_num):
+		preprocessed_image = preprocess_list[i]
+		bb = bb + ocr(preprocessed_image, cropped_image, des_fields)
+		pattern_count, bb = patterns_from_bb(bb)
+		i += 1
 
 	return bb
+

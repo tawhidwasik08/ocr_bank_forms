@@ -1,8 +1,8 @@
 import os
 import time
-from pathlib import Path
 import sys
 import argparse
+import json
 
 from utility import *
 
@@ -11,13 +11,18 @@ ap.add_argument("-dir", required=True,help="directory of image folder")
 args = vars(ap.parse_args())
 
 # image folder directory
-directory = '../'+str(args['dir'])
+path = os.getcwd() 
+parent = os.path.join(path, os.pardir)
+directory = os.path.abspath(parent)+'/'+str(args['dir'])
 
 # get format and variant
 f = int(directory.split('/')[2].split('_')[1])
 v = int(directory.split('/')[3].split('_')[1])
-print('Format:',f,',Variant:',v)
+print('Format:',f,', Variant:',v)
 
+# load format and variant config from json file to dictionary
+with open('config.json') as json_file:
+		config_data = json.load(json_file)
 
 times_req = []
 image_count = 0
@@ -38,77 +43,47 @@ for filename in os.listdir(directory):
 	# correct skew
 	image = correct_skew(image)
 
-	# different formats have different fields we are looking for//
-	# followings are based on observations
-	if f == 2 and v != 3:
-		# how many fields to extract from image
-		desired_field_num = 3
+	# get config information by region
+	fv_data = config_data['nbl']['format_'+str(f)]['variant_'+str(v)]
+	rois = list(fv_data.keys())
 
-		# crop particular image region
-		cropped_image_1 = extract_roi(image,f)
+	image_roi_list = [] 
 
-		# convert to grayscale
-		gray_1 = cv2.cvtColor(cropped_image_1, cv2.COLOR_BGR2GRAY)
-		
-		# name of the texts of desired fields
-		if v == 1 :
-			des_fields_1 = ['Full','Birth','Telephone']
-		else:
-			des_fields_1 = ['Name','Birth','Tel']
+	for roi in rois:
 
-		# get bounding boxes of the texts after ocr
-		bb_1 = ocr_roi(gray_1, cropped_image_1, des_fields_1, desired_field_num)
+		ratio_val = fv_data[roi]['ratios']
 
-		# mark required fields based on bounding boxes
-		image_1 = show_image_field_result(cropped_image_1,bb_1, [x.lower() for x in des_fields_1],f,v)
-		v_image = image_1
+		# crop image and convert to grayscale
+		cropped_image = extract_roi(image, roi, ratio_val)
+		gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
 
-	else : 
-		cropped_image_1 = extract_roi(image, f)
-		cropped_image_2 = extract_roi_2(image, f)
+		# how many and name of the fields 
+		des_fields_num = fv_data[roi]['des_field_num']
+		try:
+			des_fields = list(fv_data[roi]['des_fields'].keys()) \
+						+list(fv_data[roi]['des_fields_extra'].keys())
+		except KeyError:
+			des_fields = list(fv_data[roi]['des_fields'].keys())
 
-		gray_1 = cv2.cvtColor(cropped_image_1, cv2.COLOR_BGR2GRAY)
-		gray_2 = cv2.cvtColor(cropped_image_2, cv2.COLOR_BGR2GRAY)
+		# get ocr'd texts bounding boxes
+		bb = ocr_roi(gray, cropped_image, des_fields, des_fields_num)
 
-		if f == 1:
-			if v == 4:
-				desired_field_num = 4
-				des_fields_1 = ['Full','Birth','Mobile','Residence']
-			elif v == 3:
-				desired_field_num = 4
-				des_fields_1 = ['Full','Birth','Mobile']
-			else:
-				desired_field_num = 5
-				des_fields_1 = ['Full','Birth','Mobile','ID No','ID','Residence']
+		# mark desired boxes in image
+		result_image = show_image_field_result(cropped_image, bb, fv_data[roi])
 
-		if f == 2 and v == 3:
-			desired_field_num = 3
-			des_fields_1 = ['Full','Birth','Telephone',]
+		result_image = imutils.resize(result_image, height=800)
 
-		bb_1 = ocr_roi(gray_1, cropped_image_1, des_fields_1, desired_field_num)
+		image_roi_list.append(result_image)
 
-		des_fields_2 = ['FileID','File/ID','Source']
-		bb_2 = ocr_roi(gray_2,cropped_image_2,des_fields_2, 2)
+		print('---------\n\n')
 
-		image_1 = show_image_field_result(cropped_image_1,bb_1, [x.lower() for x in des_fields_1],f,v)
-		image_1 = cv2.copyMakeBorder(image_1,10,10,10,10,cv2.BORDER_CONSTANT,value=[50,50,50])
+	v_image = cv2.hconcat(image_roi_list)
 
-		image_2 = show_image_field_result_2(cropped_image_2,bb_2, ['file','source'],f,v)
-		image_2 = cv2.copyMakeBorder(image_2,10,10,10,10,cv2.BORDER_CONSTANT,value=[100,100,100])
-
-		image_1 = imutils.resize(image_1, height=800)
-		image_2 = imutils.resize(image_2, height=image_1.shape[:2][0])
-
-		# concatanate two regions two show in one image
-		v_image = cv2.hconcat([image_1, image_2])
-	
-	# save reesult image
-	save_dir = '../output_image/format_'+str(f)+'/variant_'+str(v)+'/'
+	# save result image
+	save_dir = parent+'/output_image/format_'+str(f)+'/variant_'+str(v)+'/'
 	if not os.path.exists(save_dir):
    		os.makedirs(save_dir)
 	cv2.imwrite(save_dir+filename, v_image)
-
-	#show_image(v_image,False)
 
 	times_req.append(time.process_time() - start_time)
 
