@@ -1,29 +1,28 @@
-# README #
+# OCR Bank Form Fields
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This repository seeks to find certain data fields containing handwritings in NBL bank forms.
 
-### What is this repository for? ###
+## Environment Setup
+* Use `conda env create -f env.yml` to create new virtual environment.
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* Please be noted the environment was created in windows.
 
-### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+## Image Directory Setup
+* Make sure the images are in the __root folder__ in the  following way:
+   	* __folder name/format\_<format number>/variant\_<variant number>/__
+   * Example : __samples/format\_1/variant\_1/22.png__
 
-### Contribution guidelines ###
 
-* Writing tests
-* Code review
-* Other guidelines
+## Run 
+* Run _ocr_fields.py -dir image_folder_directory_ from command line.
+* Example (conda prompt): `python ocr_fields.py -dir samples/format_1/variant_1/`
 
-### Who do I talk to? ###
+## Output
+* Fields are shown in blue rectangle regions in output images.
+* OCR'ed texts of the desired fields are in red rectangles.
+* Output images will be saved in the output_image/respective format and variant folder in the root directory.
 
-* Repo owner or admin
-* Other community or team contact
+
+## Privacy 
+_Due to privacy issues, sample images and outputs are not added to repository._
