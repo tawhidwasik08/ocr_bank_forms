@@ -272,44 +272,6 @@ def show_image_field_result(image, bound_boxes, fvr_data):
 
 	return image
 
-# find co ordinates of fields based on format,variant and text
-# for bottom right portion
-def show_image_field_result_2(image,bound_boxes, des_fields,f,v):	
-	bound_boxes = clean_bound_box(bound_boxes,des_fields)
-
-	for item in bound_boxes:
-		for key,val in item.items():
-			if key == 'file':
-				file_box = val
-			if key == 'source':
-				source_box = val
-
-	try:
-		x_dif = int (((source_box[0]+source_box[0]+source_box[2])/2)- ((file_box[0]+file_box[0]+file_box[2])/2))
-		y_dif = int (((file_box[1]+file_box[1]+file_box[3])/2)- ((source_box[1]+source_box[1]+source_box[3])/2))
-	except UnboundLocalError:
-		if f == 1 and v == 3:
-			x_dif = 520
-			y_dif = 65
-		else :
-			x_dif = 510
-			y_dif = 5
-	
-	(ih, iw) = image.shape[:2]
-	for item in bound_boxes:
-		for key,val in item.items():
-			(x, y, w, h) = val
-			image = cv2.rectangle(image, (x, y), (x + w, y + h), (0,15, 255), 2)
-			if (key == 'file'):
-				x = int (((x+x+w)/2) + w)
-				y = int (((y+y+h)/2)*0.90)
-				w = int (source_box[0]-x)
-				if f == 1 and v == 3:
-					h = int(x_dif * 0.15)
-				else:
-					h = int(y_dif)
-				image = draw_result_box(image,key, x,y,w,h)
-	return image
 
 # check if bounding boxes are overlapped 
 def overlap(rect1,rect2):
