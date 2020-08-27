@@ -15,13 +15,12 @@ This repository seeks to find certain data fields containing handwritings in NBL
 
 
 ## Run 
-* Run _ocr_fields.py -dir image_folder_directory_ from command line.
-* Example (conda prompt): `python ocr_fields.py -dir samples/format_1/variant_1/`
+* Run _ocr_fields_extract.py --dir image_folder_directory_ from command line.
+* Example (conda prompt): `python ocr_fields_extract.py -dir samples/format_1/variant_1/`
 
 ## Output
-* Fields are shown in blue rectangle regions in output images.
-* OCR'ed texts of the desired fields are in red rectangles.
-* Output images will be saved in the output_image/respective format and variant folder in the root directory.
+
+* Output cropped images will be saved in the extract_image_field/respective format/respective variant/image file name/ in the root directory.
 
 
 ## Privacy 

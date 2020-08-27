@@ -7,6 +7,16 @@ from fuzzywuzzy import fuzz
 import math
 from shapely.geometry import Polygon
 
+# crop fields from whole image
+def crop_field(portion, image):
+	x = portion ['val'][0]
+	y = portion ['val'][1]
+	w = portion ['val'][2]
+	h = portion ['val'][3]
+	
+	return portion['field'], image[y:y+h, x:x+w]
+
+
 # function to show any image to check out 
 def show_image(image,resized):
 	if (resized == True):
@@ -15,6 +25,7 @@ def show_image(image,resized):
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 	return None
+
 
 def extract_roi(image, roi, ratio_val):
 	width = image.shape [1]
@@ -213,7 +224,7 @@ def draw_box(image,key,x,y,w,h,color):
 
 # find co ordinates of fields based on format,variant and text
 # for top left portion
-def show_image_field_result(image, bound_boxes, fvr_data):
+def image_field_result(image, bound_boxes, fvr_data):
 	try:
 		des_fields = list(fvr_data['des_fields'].keys()) \
 					+list(fvr_data['des_fields_extra'].keys())
@@ -243,6 +254,9 @@ def show_image_field_result(image, bound_boxes, fvr_data):
 
 	(imgH, imgW) = image.shape[:2]
 
+	# list for holding all the cropped portion
+	temp_list = []
+	
 	for b in bound_boxes:
 		for key,val in b.items():
 			
@@ -267,10 +281,16 @@ def show_image_field_result(image, bound_boxes, fvr_data):
 				w = int (dif*r_vals[2])
 			h = int(dif*r_vals[3])
 
-			image = draw_box (image, key, val[0], val[1], val[2], val[3], (25, 25, 255))
-			image = draw_box(image, key, x, y, w, h, (255, 25, 0))
+			# draw boxes on image
+			# image = draw_box (image, key, val[0], val[1], val[2], val[3], (25, 25, 255))
+			# image = draw_box(image, key, x, y, w, h, (255, 25, 0))
 
-	return image
+			temp_dict = {}
+			temp_dict['field'] = key
+			temp_dict['val'] = [x, y, w, h]
+			temp_list.append(temp_dict)
+
+	return image, temp_list
 
 
 # check if bounding boxes are overlapped 

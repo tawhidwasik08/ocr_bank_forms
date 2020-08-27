@@ -1,3 +1,6 @@
+# usage
+# ocr_fields.py -dir samples/format_1/variant_1/
+
 import os
 import time
 import sys
@@ -7,7 +10,7 @@ import json
 from utility import *
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-dir", required=True,help="directory of image folder")
+ap.add_argument("--dir", required=True,help="directory of image folder")
 args = vars(ap.parse_args())
 
 # image folder directory
@@ -69,21 +72,36 @@ for filename in os.listdir(directory):
 		bb = ocr_roi(gray, cropped_image, des_fields, des_fields_num)
 
 		# mark desired boxes in image
-		result_image = show_image_field_result(cropped_image, bb, fv_data[roi])
+		result_image, result_portions = image_field_result(cropped_image, bb, fv_data[roi])
 
-		result_image = imutils.resize(result_image, height=800)
+		
 
-		image_roi_list.append(result_image)
+		# join regions of images
+		# result_image = imutils.resize(result_image, height=800)
+		# image_roi_list.append(result_image)
 
-		print('---------\n\n')
+		# save cropped field results
+		file =  filename.split('.')[0]
+		file_extension = filename.split('.')[1]
+		save_dir = parent+'/extract_image_field/format_'+str(f)+'/variant_'+str(v)+'/'+file+'/'
+	
+		if not os.path.exists(save_dir):
+			os.makedirs(save_dir)
 
-	v_image = cv2.hconcat(image_roi_list)
+		for item in result_portions:
+			field_name, field_portion = crop_field(item, result_image)
+			cv2.imwrite(save_dir+field_name+'.'+file_extension, field_portion)
 
-	# save result image
-	save_dir = parent+'/output_image/format_'+str(f)+'/variant_'+str(v)+'/'
-	if not os.path.exists(save_dir):
-   		os.makedirs(save_dir)
-	cv2.imwrite(save_dir+filename, v_image)
+	# join regions of images
+	# v_image = cv2.hconcat(image_roi_list)
+
+	# save marked result image
+	# save_dir = parent+'/output_image/format_'+str(f)+'/variant_'+str(v)+'/'
+	# if not os.path.exists(save_dir):
+	# 	os.makedirs(save_dir)
+	# cv2.imwrite(save_dir+filename, v_image)
+
+
 
 	times_req.append(time.process_time() - start_time)
 
