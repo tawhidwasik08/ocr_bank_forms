@@ -1,6 +1,6 @@
 # OCR Bank Form Fields
 
-This repository seeks to find certain data fields containing handwritings in NBL bank forms.
+This repository seeks to find certain data fields containing handwritings in certain bank forms.
 
 ## Environment Setup
 * Use `conda env create -f env.yml` to create new virtual environment.
